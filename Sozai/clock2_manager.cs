@@ -108,11 +108,6 @@ public class clock2_manager : UdonSharpBehaviour
         };
         //-------------------------------------------
 
-        //lightMapData0 = LightmapSettings.lightmaps; // デフォルトのライトマップをlightMapData0に入れる
-
-        //lightMapData1 = new LightmapData[1]; // 空のLightmapData型の配列を作る。
-        //lightMapData1[0] = new LightmapData(); // 1つめの要素にLightmapData型のインスタンスを作成する
-        //lightMapData1[0].lightmapColor = lightMap[0]; // ライトマップを設定
 
     }
 
@@ -307,21 +302,6 @@ public class clock2_manager : UdonSharpBehaviour
 
         }
 
-
-
-        //if (Input.GetKeyDown(UnityEngine.KeyCode.A))
-        //{
-        //    LightmapSettings.lightmaps = lightMapData0;
-        //    LightmapSettings.lightProbes = lightProbe[0];
-        //    probeComponent.customBakedTexture = reflectionProbe[0];
-        //}
-
-        //if (Input.GetKeyDown(UnityEngine.KeyCode.B))
-        //{
-        //    LightmapSettings.lightmaps = lightMapData1;
-        //    LightmapSettings.lightProbes = lightProbe[1];
-        //    probeComponent.customBakedTexture = reflectionProbe[1];
-        //}
 
     }
     private void RefreshMusic(int mode)
