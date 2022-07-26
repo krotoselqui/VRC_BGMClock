@@ -117,6 +117,8 @@ public class clock2_manager : UdonSharpBehaviour
 
     private void RecalcSwitchingDT()
     {
+        DateTime dtNow = DateTime.Now;
+
         switchingDTs = new DateTime[]
         {
             new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, morningHour,morningMin,0),
@@ -146,7 +148,7 @@ public class clock2_manager : UdonSharpBehaviour
                         switchingDTs[d].Hour,
                         switchingDTs[d].Minute,
                         switchingDTs[d].Second
-                )
+                );
             }
         }
 
