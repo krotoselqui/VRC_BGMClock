@@ -118,15 +118,14 @@ public class clock2_manager : UdonSharpBehaviour
     {
         switchingDTs = new DateTime[]
         {
-            new DateTime(DateTime.Now.Year,DateTime.Now.Month,DateTime.Now.Day, morningHour,morningMin,0),
-            new DateTime(DateTime.Now.Year,DateTime.Now.Month,DateTime.Now.Day, dayHour,dayMin,0),
-            new DateTime(DateTime.Now.Year,DateTime.Now.Month,DateTime.Now.Day,eveningHour,eveningMin,0),
-            new DateTime(DateTime.Now.Year,DateTime.Now.Month,DateTime.Now.Day, nightHour,nightMin,0),
+            new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, morningHour,morningMin,0),
+            new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, dayHour,dayMin,0),
+            new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, eveningHour,eveningMin,0),
+            new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, nightHour,nightMin,0),
         };
 
         //2は発動用マージン
         TimeSpan ts_fadeout = new TimeSpan(0, 0, fadeOutTime + 1);
-
 
         fadeoutStartDTs = new DateTime[]
         {
@@ -135,6 +134,20 @@ public class clock2_manager : UdonSharpBehaviour
             switchingDTs[2] - ts_fadeout,
             switchingDTs[3] - ts_fadeout,
         };
+
+        for (int d = 0; d < fadeoutStartDTs.Length; d++)
+        {
+            if (DateTime.Now.Day != switchingDTs[d].Day)
+            {
+                //同時刻で日付のみ使えるよう更新
+                switchingDTs[d] = new DateTime(
+                        dtNow.Year, dtNow.Month, dtNow.Day,
+                        switchingDTs[d].Hour,
+                        switchingDTs[d].Minute,
+                        switchingDTs[d].Second
+                )
+            }
+        }
 
 
         //検討
@@ -269,8 +282,6 @@ public class clock2_manager : UdonSharpBehaviour
                 prevDay = day;
             }
 
-
-
         }
 
 
@@ -359,8 +370,5 @@ public class clock2_manager : UdonSharpBehaviour
 
 
     }
-
-
-
 
 }
