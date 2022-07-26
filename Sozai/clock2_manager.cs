@@ -116,16 +116,13 @@ public class clock2_manager : UdonSharpBehaviour
         switchingDTs = new DateTime[]
         {
             new DateTime(DateTime.Now.Year,DateTime.Now.Month,DateTime.Now.Day, morningHour,morningMin,0),
-
             new DateTime(DateTime.Now.Year,DateTime.Now.Month,DateTime.Now.Day, dayHour,dayMin,0),
-
             new DateTime(DateTime.Now.Year,DateTime.Now.Month,DateTime.Now.Day,eveningHour,eveningMin,0),
-
             new DateTime(DateTime.Now.Year,DateTime.Now.Month,DateTime.Now.Day, nightHour,nightMin,0),
         };
 
         //2は発動用マージン
-        TimeSpan ts_fadeout = new TimeSpan(0, 0, fadeOutTime + 2);
+        TimeSpan ts_fadeout = new TimeSpan(0, 0, fadeOutTime + 1);
 
 
         fadeoutStartDTs = new DateTime[]
@@ -135,11 +132,31 @@ public class clock2_manager : UdonSharpBehaviour
             switchingDTs[2] - ts_fadeout,
             switchingDTs[3] - ts_fadeout,
         };
-        //for (int i = 0; i < switchingDTs.Length; i++)
-        //{
-        //    DateTime dateTime = switchingDTs[i] - ts_fadeout;
-        //    fadeoutStartDTs[i] = dateTime;
-        //}
+
+
+        //検討
+        // 朝の時刻が0:00開始だと仮定すると
+        // 更新フレームを踏んだ時 このメソッドがよばれて
+
+        // (仮定)   更新前                   更新後
+        //          1995/05/11 23:59:59.80   1995/05/12 00:00:00.32
+
+        // 朝       1995/05/11 00:00:00.00   1995/05/12 00:00:00.00
+        // 昼       1995/05/11 10:00:00.00   1995/05/12 10:00:00.00
+        // 夕       1995/05/11 16:00:00.00   1995/05/12 16:00:00.00
+        // 夜       1995/05/11 20:00:00.00   1995/05/12 20:00:00.00
+
+        //プレ処理
+
+        // (仮定)   更新前                   更新後
+        //          1995/05/11 23:59:59.80   1995/05/12 00:00:00.32
+
+        // 朝       1995/05/10 23:59:45.00  <1995/05/11 23:59:45.00> ←開始時間がすでに過ぎている
+        // 昼       1995/05/11 09:59:45.00   1995/05/12 09:59:45.00
+        // 夕       1995/05/11 15:59:45.00   1995/05/12 15:59:45.00 
+        // 夜       1995/05/11 19:59:45.00   1995/05/12 19:59:45.00
+
+
     }
 
     private void Clock_Tick(int min, int hour, int sec)
