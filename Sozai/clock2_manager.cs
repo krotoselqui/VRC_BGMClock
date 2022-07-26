@@ -56,6 +56,9 @@ public class clock2_manager : UdonSharpBehaviour
     [SerializeField] Material cloudseaNight;
     [SerializeField] AudioClip audioNight;
 
+    //private const int MODE_SKY = 31;
+    //private const int MODE_AUDIO = 32;
+
     private float overTickRemainTime = 0.0f;
     private float overTickTimeMax = 0.2f;
     private bool overTicking = false;
