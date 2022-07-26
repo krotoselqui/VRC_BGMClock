@@ -92,8 +92,8 @@ public class clock2_manager : UdonSharpBehaviour
 
     void Start()
     {
-        fadeInMax = fadeInTime;
-        fadeOutMax = fadeOutTime;
+        fadeInMax = fadeInTime + 0.1f;
+        fadeOutMax = fadeOutTime + 0.1f;
 
         switchingMats = new Material[] {
             skyboxMorning, skyboxDay, skyboxEvening, skyboxNight
