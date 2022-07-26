@@ -56,6 +56,9 @@ public class clock2_manager : UdonSharpBehaviour
     [SerializeField] Material cloudseaNight;
     [SerializeField] AudioClip audioNight;
 
+    //private const int MODE_SKY = 31;
+    //private const int MODE_AUDIO = 32;
+
     private float overTickRemainTime = 0.0f;
     private float overTickTimeMax = 0.2f;
     private bool overTicking = false;
@@ -108,11 +111,7 @@ public class clock2_manager : UdonSharpBehaviour
         };
         //-------------------------------------------
 
-        //lightMapData0 = LightmapSettings.lightmaps; // デフォルトのライトマップをlightMapData0に入れる
-
-        //lightMapData1 = new LightmapData[1]; // 空のLightmapData型の配列を作る。
-        //lightMapData1[0] = new LightmapData(); // 1つめの要素にLightmapData型のインスタンスを作成する
-        //lightMapData1[0].lightmapColor = lightMap[0]; // ライトマップを設定
+        RecalcSwitchingDT();
 
     }
 
@@ -120,18 +119,14 @@ public class clock2_manager : UdonSharpBehaviour
     {
         switchingDTs = new DateTime[]
         {
-            new DateTime(DateTime.Now.Year,DateTime.Now.Month,DateTime.Now.Day, morningHour,morningMin,0),
-
-            new DateTime(DateTime.Now.Year,DateTime.Now.Month,DateTime.Now.Day, dayHour,dayMin,0),
-
-            new DateTime(DateTime.Now.Year,DateTime.Now.Month,DateTime.Now.Day,eveningHour,eveningMin,0),
-
-            new DateTime(DateTime.Now.Year,DateTime.Now.Month,DateTime.Now.Day, nightHour,nightMin,0),
+            new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, morningHour,morningMin,0),
+            new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, dayHour,dayMin,0),
+            new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, eveningHour,eveningMin,0),
+            new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, nightHour,nightMin,0),
         };
 
         //2は発動用マージン
-        TimeSpan ts_fadeout = new TimeSpan(0, 0, fadeOutTime + 2);
-
+        TimeSpan ts_fadeout = new TimeSpan(0, 0, fadeOutTime + 1);
 
         fadeoutStartDTs = new DateTime[]
         {
@@ -140,11 +135,45 @@ public class clock2_manager : UdonSharpBehaviour
             switchingDTs[2] - ts_fadeout,
             switchingDTs[3] - ts_fadeout,
         };
-        //for (int i = 0; i < switchingDTs.Length; i++)
-        //{
-        //    DateTime dateTime = switchingDTs[i] - ts_fadeout;
-        //    fadeoutStartDTs[i] = dateTime;
-        //}
+
+        for (int d = 0; d < fadeoutStartDTs.Length; d++)
+        {
+            if (DateTime.Now.Day != switchingDTs[d].Day)
+            {
+                //同時刻で日付のみ使えるよう更新
+                switchingDTs[d] = new DateTime(
+                        dtNow.Year, dtNow.Month, dtNow.Day,
+                        switchingDTs[d].Hour,
+                        switchingDTs[d].Minute,
+                        switchingDTs[d].Second
+                )
+            }
+        }
+
+
+        //検討
+        // 朝の時刻が0:00開始だと仮定すると
+        // 更新フレームを踏んだ時 このメソッドがよばれて
+
+        // (仮定)   更新前                   更新後
+        //          1995/05/11 23:59:59.80   1995/05/12 00:00:00.32
+
+        // 朝       1995/05/11 00:00:00.00   1995/05/12 00:00:00.00
+        // 昼       1995/05/11 10:00:00.00   1995/05/12 10:00:00.00
+        // 夕       1995/05/11 16:00:00.00   1995/05/12 16:00:00.00
+        // 夜       1995/05/11 20:00:00.00   1995/05/12 20:00:00.00
+
+        //プレ処理
+
+        // (仮定)   更新前                   更新後
+        //          1995/05/11 23:59:59.80   1995/05/12 00:00:00.32
+
+        // 朝       1995/05/10 23:59:45.00  <1995/05/11 23:59:45.00>
+        // 昼       1995/05/11 09:59:45.00   1995/05/12 09:59:45.00
+        // 夕       1995/05/11 15:59:45.00   1995/05/12 15:59:45.00 
+        // 夜       1995/05/11 19:59:45.00   1995/05/12 19:59:45.00
+
+
     }
 
     private void Clock_Tick(int min, int hour, int sec)
@@ -254,8 +283,6 @@ public class clock2_manager : UdonSharpBehaviour
                 prevDay = day;
             }
 
-
-
         }
 
 
@@ -308,21 +335,6 @@ public class clock2_manager : UdonSharpBehaviour
         }
 
 
-
-        //if (Input.GetKeyDown(UnityEngine.KeyCode.A))
-        //{
-        //    LightmapSettings.lightmaps = lightMapData0;
-        //    LightmapSettings.lightProbes = lightProbe[0];
-        //    probeComponent.customBakedTexture = reflectionProbe[0];
-        //}
-
-        //if (Input.GetKeyDown(UnityEngine.KeyCode.B))
-        //{
-        //    LightmapSettings.lightmaps = lightMapData1;
-        //    LightmapSettings.lightProbes = lightProbe[1];
-        //    probeComponent.customBakedTexture = reflectionProbe[1];
-        //}
-
     }
     private void RefreshMusic(int mode)
     {
@@ -359,8 +371,5 @@ public class clock2_manager : UdonSharpBehaviour
 
 
     }
-
-
-
 
 }
