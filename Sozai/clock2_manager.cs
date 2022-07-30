@@ -367,15 +367,14 @@ public class clock2_manager : UdonSharpBehaviour
         }
 
         //directionalLights
-        if (switchingLights[prevDT] != null)
-            switchingLights[prevDT].SetActive(false);
-
         for (int i = 0; i < switchingLights.Length; i++)
         {
             if (i == prevDT) continue;
-            switchingLights[i].SetActive(false);
+            if (switchingLights[i] != null) switchingLights[i].SetActive(false);
         }
 
+        if (switchingLights[prevDT] != null)
+            switchingLights[prevDT].SetActive(true);
     }
 
 }
