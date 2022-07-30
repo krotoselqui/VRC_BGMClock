@@ -73,6 +73,10 @@ public class clock2_manager : UdonSharpBehaviour
     private float fadeOutMax;
     private float currentVol;
 
+    //計算用
+    private float fadeInMax_INV;
+    private float fadeOutMax_INV;
+
     private int[] startsHour;
     private int[] startsMin;
 
@@ -103,6 +107,9 @@ public class clock2_manager : UdonSharpBehaviour
     {
         fadeInMax = fadeInTime + 0.1f;
         fadeOutMax = fadeOutTime + 0.1f;
+
+        fadeInMax_INV = 1 / fadeInMax;
+        fadeOutMax_INV = 1 / fadeOutMax;
 
         switchingMats = new Material[] {
             skyboxMorning, skyboxDay, skyboxEvening, skyboxNight
@@ -236,7 +243,7 @@ public class clock2_manager : UdonSharpBehaviour
             {
                 case AUDIO_FADING_IN:
                     audioRemainFadeTime -= Time.deltaTime;
-                    vol = 1 - audioRemainFadeTime / fadeInMax;
+                    vol = 1 - audioRemainFadeTime * fadeInMax_INV;
                     if (audioRemainFadeTime < 0)
                     {
                         audioRemainFadeTime = 0;
@@ -245,7 +252,7 @@ public class clock2_manager : UdonSharpBehaviour
                     break;
                 case AUDIO_FADING_OUT:
                     audioRemainFadeTime -= Time.deltaTime;
-                    vol = audioRemainFadeTime / fadeOutMax;
+                    vol = audioRemainFadeTime * fadeOutMax_INV;
                     if (audioRemainFadeTime < 0)
                     {
                         audioRemainFadeTime = 0;
