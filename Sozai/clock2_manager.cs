@@ -10,6 +10,7 @@ public class clock2_manager : UdonSharpBehaviour
 {
     //-----------------------------------
 
+    //[SerializeField] 
 
     [SerializeField] GameObject shortHand;
     [SerializeField] GameObject longHand;
@@ -34,6 +35,7 @@ public class clock2_manager : UdonSharpBehaviour
     [SerializeField] Material skyboxMorning;
     [SerializeField] Material cloudseaMorning;
     [SerializeField] AudioClip audioMorning;
+    [SerializeField] GameObject directionalLightMorning;
 
     [Header("開始時刻 / 昼")]
     [SerializeField, Range(0, 23)] int dayHour = 7;
@@ -41,6 +43,7 @@ public class clock2_manager : UdonSharpBehaviour
     [SerializeField] Material skyboxDay;
     [SerializeField] Material cloudseaDay;
     [SerializeField] AudioClip audioDay;
+    [SerializeField] GameObject directionalLightDay;
 
     [Header("開始時刻 / 夕方")]
     [SerializeField, Range(0, 23)] int eveningHour = 17;
@@ -48,6 +51,7 @@ public class clock2_manager : UdonSharpBehaviour
     [SerializeField] Material skyboxEvening;
     [SerializeField] Material cloudseaEvening;
     [SerializeField] AudioClip audioEvening;
+    [SerializeField] GameObject directionalLightEvening;
 
     [Header("開始時刻 / 夜")]
     [SerializeField, Range(0, 23)] int nightHour = 19;
@@ -55,6 +59,7 @@ public class clock2_manager : UdonSharpBehaviour
     [SerializeField] Material skyboxNight;
     [SerializeField] Material cloudseaNight;
     [SerializeField] AudioClip audioNight;
+    [SerializeField] GameObject directionalLightNight;
 
     //private const int MODE_SKY = 31;
     //private const int MODE_AUDIO = 32;
@@ -81,6 +86,7 @@ public class clock2_manager : UdonSharpBehaviour
     Material[] switchingClouds;
 
     AudioClip[] switchingClips;
+    GameObject[] switchingLights;
 
     string[] stDateTime = new string[] { "Morning", "Day", "Evening", "Night" };
 
@@ -109,6 +115,17 @@ public class clock2_manager : UdonSharpBehaviour
         switchingClips = new AudioClip[] {
             audioMorning, audioDay, audioEvening, audioNight
         };
+
+        switchingLights = new GameObject[]
+        {
+            directionalLightMorning, directionalLightDay, directionalLightEvening, directionalLightNight
+        };
+
+        foreach (GameObject gmObj in switchingLights)
+        {
+            if (gmObj != null) gmObj.SetActive(false);
+        }
+
         //-------------------------------------------
 
         RecalcSwitchingDT();
@@ -151,29 +168,6 @@ public class clock2_manager : UdonSharpBehaviour
                 );
             }
         }
-
-
-        //検討
-        // 朝の時刻が0:00開始だと仮定すると
-        // 更新フレームを踏んだ時 このメソッドがよばれて
-
-        // (仮定)   更新前                   更新後
-        //          1995/05/11 23:59:59.80   1995/05/12 00:00:00.32
-
-        // 朝       1995/05/11 00:00:00.00   1995/05/12 00:00:00.00
-        // 昼       1995/05/11 10:00:00.00   1995/05/12 10:00:00.00
-        // 夕       1995/05/11 16:00:00.00   1995/05/12 16:00:00.00
-        // 夜       1995/05/11 20:00:00.00   1995/05/12 20:00:00.00
-
-        //プレ処理
-
-        // (仮定)   更新前                   更新後
-        //          1995/05/11 23:59:59.80   1995/05/12 00:00:00.32
-
-        // 朝       1995/05/10 23:59:45.00  <1995/05/11 23:59:45.00>
-        // 昼       1995/05/11 09:59:45.00   1995/05/12 09:59:45.00
-        // 夕       1995/05/11 15:59:45.00   1995/05/12 15:59:45.00 
-        // 夜       1995/05/11 19:59:45.00   1995/05/12 19:59:45.00
 
 
     }
@@ -363,6 +357,7 @@ public class clock2_manager : UdonSharpBehaviour
 
     private void RefreshSkybox()
     {
+        //skybox
         RenderSettings.skybox = switchingMats[prevDT];
 
         if (gmObjCloudsea != null)
@@ -371,6 +366,15 @@ public class clock2_manager : UdonSharpBehaviour
             mesh.material = switchingClouds[prevDT];
         }
 
+        //directionalLights
+        if (switchingLights[prevDT] != null)
+            switchingLights[prevDT].SetActive(false);
+
+        for (int i = 0; i < switchingLights.Length; i++)
+        {
+            if (i == prevDT) continue;
+            switchingLights[i].SetActive(false);
+        }
 
     }
 
