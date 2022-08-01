@@ -10,8 +10,6 @@ public class clock2_manager : UdonSharpBehaviour
 {
     //-----------------------------------
 
-    //[SerializeField] 
-
     [SerializeField] GameObject shortHand;
     [SerializeField] GameObject longHand;
     [SerializeField] GameObject secondHand;
@@ -61,13 +59,6 @@ public class clock2_manager : UdonSharpBehaviour
     [SerializeField] AudioClip audioNight;
     [SerializeField] GameObject directionalLightNight;
 
-    //private const int MODE_SKY = 31;
-    //private const int MODE_AUDIO = 32;
-
-    private float overTickRemainTime = 0.0f;
-    private float overTickTimeMax = 0.2f;
-    private bool overTicking = false;
-    private int prevSec = -1;
 
     private float fadeInMax;
     private float fadeOutMax;
@@ -97,8 +88,21 @@ public class clock2_manager : UdonSharpBehaviour
     private int prevDT = -1;
     private int prevDT_Audio = -1;
 
+    private int currentAudioStat = AUDIO_IDLE;
+    private const int AUDIO_IDLE = 0;
+    private const int AUDIO_FADING_OUT = 51;
+    private const int AUDIO_FADING_IN = 52;
+    private const int AUDIO_PLAYING = 53;
+    private float audioRemainFadeTime = 0;
+    private bool firstFadeFlag = true;
+
     [Header("秒針拡張(触らないことをお勧めします)")]
     [SerializeField] bool overTickEnabled = true;
+
+    private float overTickRemainTime = 0.0f;
+    private float overTickTimeMax = 0.2f;
+    private bool overTicking = false;
+    private int prevSec = -1;
 
     //[Header("検査用")]
     //[SerializeField] Text logText;
@@ -107,7 +111,6 @@ public class clock2_manager : UdonSharpBehaviour
     {
         fadeInMax = fadeInTime + 0.1f;
         fadeOutMax = fadeOutTime + 0.1f;
-
         fadeInMax_INV = 1 / fadeInMax;
         fadeOutMax_INV = 1 / fadeOutMax;
 
@@ -123,8 +126,7 @@ public class clock2_manager : UdonSharpBehaviour
             audioMorning, audioDay, audioEvening, audioNight
         };
 
-        switchingLights = new GameObject[]
-        {
+        switchingLights = new GameObject[] {
             directionalLightMorning, directionalLightDay, directionalLightEvening, directionalLightNight
         };
 
@@ -216,14 +218,6 @@ public class clock2_manager : UdonSharpBehaviour
         prevSec = sec;
     }
 
-    private int currentAudioStat = AUDIO_IDLE;
-    private const int AUDIO_IDLE = 0;
-    private const int AUDIO_FADING_OUT = 51;
-    private const int AUDIO_FADING_IN = 52;
-    private const int AUDIO_PLAYING = 53;
-    private float audioRemainFadeTime = 0;
-    private bool firstFadeFlag = true;
-
     private void Update()
     {
         DateTime dtNow = DateTime.Now;
@@ -235,44 +229,6 @@ public class clock2_manager : UdonSharpBehaviour
         Clock_Tick(min, hour, sec);
 
 
-        if (controlMusic)
-        {
-            float vol = 0f;
-
-            switch (currentAudioStat)
-            {
-                case AUDIO_FADING_IN:
-                    audioRemainFadeTime -= Time.deltaTime;
-                    vol = 1 - audioRemainFadeTime * fadeInMax_INV;
-                    if (audioRemainFadeTime < 0)
-                    {
-                        audioRemainFadeTime = 0;
-                        currentAudioStat = AUDIO_PLAYING;
-                    }
-                    break;
-                case AUDIO_FADING_OUT:
-                    audioRemainFadeTime -= Time.deltaTime;
-                    vol = audioRemainFadeTime * fadeOutMax_INV;
-                    if (audioRemainFadeTime < 0)
-                    {
-                        audioRemainFadeTime = 0;
-                        currentAudioStat = AUDIO_IDLE;
-                    }
-                    break;
-                case AUDIO_IDLE:
-                    //vol = 0;
-                    break;
-                case AUDIO_PLAYING:
-                    vol = 1;
-                    break;
-            }
-
-            if (audioSrc != null)
-            {
-                audioSrc.volume = vol;
-            }
-
-        }
 
 
         if (controlMusic || controlSkybox)
@@ -290,7 +246,7 @@ public class clock2_manager : UdonSharpBehaviour
             int currentDT_Audio = 3;
 
             //現在時刻と次の時刻判定
-            for (int i = 0; i < switchingDTs.Length; i++)
+            for (int i = 0; i < 4; i++)
             {
                 if (dtNow < switchingDTs[i])
                 {
@@ -299,8 +255,17 @@ public class clock2_manager : UdonSharpBehaviour
                 }
             }
 
+            //1フレ前の時間帯と異なる
+            if (prevDT != currentDT)
+            {
+                prevDT = currentDT;
+
+                if (controlSkybox) RefreshSkybox();
+                if (controlMusic) SwitchAudioFadeStat(AUDIO_FADING_IN);
+            }
+
             //fadeoutぶんだけ前のバージョン
-            for (int i = 0; i < fadeoutStartDTs.Length; i++)
+            for (int i = 0; i < 4; i++)
             {
                 if (dtNow < fadeoutStartDTs[i])
                 {
@@ -309,21 +274,53 @@ public class clock2_manager : UdonSharpBehaviour
                 }
             }
 
-            //1フレ前の時間帯と異なる
-            if (prevDT != currentDT)
+            if (controlSkybox)
             {
-                prevDT = currentDT;
-                if (controlSkybox) RefreshSkybox();
 
-                if (controlMusic) RefreshMusic(AUDIO_FADING_IN);
             }
 
-            //音声フェードアウト用
-            if (prevDT_Audio != currentDT_Audio)
+            if (controlMusic)
             {
-                prevDT_Audio = currentDT_Audio;
-                if (!firstFadeFlag && controlMusic) RefreshMusic(AUDIO_FADING_OUT);
-                firstFadeFlag = false;
+                //音量制御
+                float vol = 0f;
+                switch (currentAudioStat)
+                {
+                    case AUDIO_FADING_IN:
+                        audioRemainFadeTime -= Time.deltaTime;
+                        vol = 1 - audioRemainFadeTime * fadeInMax_INV;
+                        if (audioRemainFadeTime < 0)
+                        {
+                            audioRemainFadeTime = 0;
+                            currentAudioStat = AUDIO_PLAYING;
+                        }
+                        break;
+                    case AUDIO_FADING_OUT:
+                        audioRemainFadeTime -= Time.deltaTime;
+                        vol = audioRemainFadeTime * fadeOutMax_INV;
+                        if (audioRemainFadeTime < 0)
+                        {
+                            audioRemainFadeTime = 0;
+                            currentAudioStat = AUDIO_IDLE;
+                        }
+                        break;
+                    case AUDIO_IDLE:
+                        //vol = 0;
+                        break;
+                    case AUDIO_PLAYING:
+                        vol = 1;
+                        break;
+                }
+                if (audioSrc != null) audioSrc.volume = vol;
+                
+                //音声フェードアウト用
+                if (prevDT_Audio != currentDT_Audio)
+                {
+                    prevDT_Audio = currentDT_Audio;
+                    if (!firstFadeFlag) { 
+                        SwitchAudioFadeStat(AUDIO_FADING_OUT);
+                        firstFadeFlag = false;
+                    }
+                }
 
             }
 
@@ -331,29 +328,29 @@ public class clock2_manager : UdonSharpBehaviour
 
 
     }
-    private void RefreshMusic(int mode)
-    {
-        if (audioSrc != null)
-        {
-            switch (mode)
-            {
-                case AUDIO_FADING_IN:
 
+    private void SwitchAudioFadeStat(int mode)
+    {
+        switch (mode)
+        {
+            case AUDIO_FADING_IN:
+
+                if (audioSrc != null)
+                {
                     audioSrc.clip = switchingClips[prevDT];
                     audioSrc.Play();
-                    audioRemainFadeTime = fadeInMax;
-                    currentAudioStat = AUDIO_FADING_IN;
-                    break;
+                }
+                audioRemainFadeTime = fadeInMax;
+                currentAudioStat = AUDIO_FADING_IN;
+                break;
 
-                case AUDIO_FADING_OUT:
+            case AUDIO_FADING_OUT:
 
-                    audioRemainFadeTime = fadeOutMax;
-                    currentAudioStat = AUDIO_FADING_OUT;
-                    break;
+                audioRemainFadeTime = fadeOutMax;
+                currentAudioStat = AUDIO_FADING_OUT;
+                break;
 
-            }
         }
-
     }
 
     private void RefreshSkybox()
