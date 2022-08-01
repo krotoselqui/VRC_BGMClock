@@ -14,18 +14,18 @@ public class clock2_manager : UdonSharpBehaviour
     [SerializeField] GameObject longHand;
     [SerializeField] GameObject secondHand;
 
-    [SerializeField] AudioSource audioSrc;
-
     [Header("この時計でこのワールドのSkyboxを制御する")]
     [SerializeField] bool controlSkybox = false;
+    [Header("Cloud Sea")]
+    [SerializeField] GameObject gmObjCloudsea;
 
     [Header("この時計でこのワールドのBGMを制御する")]
     [SerializeField] bool controlMusic = false;
-    [SerializeField, Range(0, 25)] int fadeInTime = 10;
+    [SerializeField, Range(0, 25)] int fadeInTime = 0;
     [SerializeField, Range(0, 25)] int fadeOutTime = 15;
+    [Header("AudioSource")]
+    [SerializeField] AudioSource audioSrc;
 
-    [Header("Cloud Sea")]
-    [SerializeField] GameObject gmObjCloudsea;
 
     [Header("開始時刻 / 早朝")]
     [SerializeField, Range(0, 23)] int morningHour = 5;
@@ -104,8 +104,6 @@ public class clock2_manager : UdonSharpBehaviour
     private bool overTicking = false;
     private int prevSec = -1;
 
-    //[Header("検査用")]
-    //[SerializeField] Text logText;
 
     void Start()
     {
@@ -260,7 +258,7 @@ public class clock2_manager : UdonSharpBehaviour
             {
                 prevDT = currentDT;
 
-                if (controlSkybox) RefreshSkybox();
+                if (controlSkybox) RefreshSky();
                 if (controlMusic) SwitchAudioFadeStat(AUDIO_FADING_IN);
             }
 
@@ -311,12 +309,13 @@ public class clock2_manager : UdonSharpBehaviour
                         break;
                 }
                 if (audioSrc != null) audioSrc.volume = vol;
-                
+
                 //音声フェードアウト用
                 if (prevDT_Audio != currentDT_Audio)
                 {
                     prevDT_Audio = currentDT_Audio;
-                    if (!firstFadeFlag) { 
+                    if (!firstFadeFlag)
+                    {
                         SwitchAudioFadeStat(AUDIO_FADING_OUT);
                         firstFadeFlag = false;
                     }
@@ -335,7 +334,7 @@ public class clock2_manager : UdonSharpBehaviour
         {
             case AUDIO_FADING_IN:
 
-                if (audioSrc != null)
+                if (audioSrc != null && switchingClips[prevDT] != null)
                 {
                     audioSrc.clip = switchingClips[prevDT];
                     audioSrc.Play();
@@ -353,11 +352,13 @@ public class clock2_manager : UdonSharpBehaviour
         }
     }
 
-    private void RefreshSkybox()
+    private void RefreshSky()
     {
         //skybox
-        RenderSettings.skybox = switchingMats[prevDT];
-
+        if (switchingMats[prevDT] != null)
+        {
+            RenderSettings.skybox = switchingMats[prevDT];
+        }
         if (gmObjCloudsea != null)
         {
             MeshRenderer mesh = gmObjCloudsea.GetComponent<MeshRenderer>();
