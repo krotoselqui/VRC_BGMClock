@@ -166,7 +166,7 @@ public class clock2_manager : UdonSharpBehaviour
         {
             if (DateTime.Now.Day != switchingDTs[d].Day)
             {
-                //同時刻で日付のみ使えるよう更新
+                //日付を有効なものに更新
                 switchingDTs[d] = new DateTime(
                         dtNow.Year, dtNow.Month, dtNow.Day,
                         switchingDTs[d].Hour,
@@ -260,7 +260,7 @@ public class clock2_manager : UdonSharpBehaviour
                     }
                     break;
                 case AUDIO_IDLE:
-                    //RefreshMusic(AUDIO_FADING_IN);
+                    //vol = 0;
                     break;
                 case AUDIO_PLAYING:
                     vol = 1;
@@ -286,12 +286,6 @@ public class clock2_manager : UdonSharpBehaviour
                 prevDay = day;
             }
 
-        }
-
-
-        if (controlMusic || controlSkybox)
-        {
-
             int currentDT = 3;
             int currentDT_Audio = 3;
 
@@ -315,7 +309,6 @@ public class clock2_manager : UdonSharpBehaviour
                 }
             }
 
-
             //1フレ前の時間帯と異なる
             if (prevDT != currentDT)
             {
@@ -324,7 +317,6 @@ public class clock2_manager : UdonSharpBehaviour
 
                 if (controlMusic) RefreshMusic(AUDIO_FADING_IN);
             }
-
 
             //音声フェードアウト用
             if (prevDT_Audio != currentDT_Audio)
@@ -346,13 +338,15 @@ public class clock2_manager : UdonSharpBehaviour
             switch (mode)
             {
                 case AUDIO_FADING_IN:
-                    audioRemainFadeTime = fadeInMax;
+
                     audioSrc.clip = switchingClips[prevDT];
                     audioSrc.Play();
                     audioRemainFadeTime = fadeInMax;
                     currentAudioStat = AUDIO_FADING_IN;
                     break;
+
                 case AUDIO_FADING_OUT:
+
                     audioRemainFadeTime = fadeOutMax;
                     currentAudioStat = AUDIO_FADING_OUT;
                     break;
