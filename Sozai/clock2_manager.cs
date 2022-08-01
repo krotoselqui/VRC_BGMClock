@@ -151,7 +151,7 @@ public class clock2_manager : UdonSharpBehaviour
             new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, nightHour,nightMin,0),
         };
 
-        //2は発動用マージン
+        //1secは発動予備マージン
         TimeSpan ts_fadeout = new TimeSpan(0, 0, fadeOutTime + 1);
 
         fadeoutStartDTs = new DateTime[]
