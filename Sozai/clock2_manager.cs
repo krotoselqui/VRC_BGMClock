@@ -76,14 +76,16 @@ public class clock2_manager : UdonSharpBehaviour
 
     DateTime[] fadeoutStartDTs;
 
-
     Material[] switchingMats;
     Material[] switchingClouds;
 
     AudioClip[] switchingClips;
     GameObject[] switchingLights;
 
-    string[] stDateTime = new string[] { "Morning", "Day", "Evening", "Night" };
+    //string[] stDateTime = new string[] { "Morning", "Day", "Evening", "Night" };
+    //private int[] sortedDtPos = new int[] { 0, 0, 0, 0 };
+    private int[] DtOfThisPos = new int[] { 0, 0, 0, 0 };
+    private int[] DtPrevOfThisPos = new int[] { 0, 0, 0, 0 };
 
     private int prevDT = -1;
     private int prevDT_Audio = -1;
@@ -94,7 +96,7 @@ public class clock2_manager : UdonSharpBehaviour
     private const int AUDIO_FADING_IN = 52;
     private const int AUDIO_PLAYING = 53;
     private float audioRemainFadeTime = 0;
-    private bool firstFadeFlag = true;
+    private bool thisisFirstFade = true;
 
     [Header("秒針拡張(触らないことをお勧めします)")]
     [SerializeField] bool overTickEnabled = true;
@@ -107,40 +109,28 @@ public class clock2_manager : UdonSharpBehaviour
 
     void Start()
     {
-        fadeInMax = fadeInTime + 0.1f;
-        fadeOutMax = fadeOutTime + 0.1f;
-        fadeInMax_INV = 1 / fadeInMax;
-        fadeOutMax_INV = 1 / fadeOutMax;
 
-        switchingMats = new Material[] {
-            skyboxMorning, skyboxDay, skyboxEvening, skyboxNight
-        };
-
-        switchingClouds = new Material[] {
-            cloudseaMorning, cloudseaDay, cloudseaEvening, cloudseaNight
-        };
-
-        switchingClips = new AudioClip[] {
-            audioMorning, audioDay, audioEvening, audioNight
-        };
-
+        //空
+        switchingMats = new Material[] { skyboxMorning, skyboxDay, skyboxEvening, skyboxNight };
+        switchingClouds = new Material[] { cloudseaMorning, cloudseaDay, cloudseaEvening, cloudseaNight };
         switchingLights = new GameObject[] {
             directionalLightMorning, directionalLightDay, directionalLightEvening, directionalLightNight
         };
-
         foreach (GameObject gmObj in switchingLights)
         {
             if (gmObj != null) gmObj.SetActive(false);
         }
 
+        //音
+        switchingClips = new AudioClip[] { audioMorning, audioDay, audioEvening, audioNight };
+        fadeInMax = fadeInTime + 0.1f;
+        fadeOutMax = fadeOutTime + 0.1f;
+        fadeInMax_INV = 1 / fadeInMax;
+        fadeOutMax_INV = 1 / fadeOutMax;
+
+
         //-------------------------------------------
 
-        RecalcSwitchingDT();
-
-    }
-
-    private void RecalcSwitchingDT()
-    {
         DateTime dtNow = DateTime.Now;
 
         switchingDTs = new DateTime[]
@@ -151,6 +141,7 @@ public class clock2_manager : UdonSharpBehaviour
             new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, nightHour,nightMin,0),
         };
 
+        //フェードアウト発動タイミングを計算しておく
         //1secは発動予備マージン
         TimeSpan ts_fadeout = new TimeSpan(0, 0, fadeOutTime + 1);
 
@@ -162,20 +153,52 @@ public class clock2_manager : UdonSharpBehaviour
             switchingDTs[3] - ts_fadeout,
         };
 
-        for (int d = 0; d < fadeoutStartDTs.Length; d++)
+        //現在日付基準で更新(最初も必要)
+        RecalcSwitchingDT(dtNow);
+
+
+        //時間帯ソート
+        int sortedDtPos = new int[] { 0, 0, 0, 0 };
+        int sortedDtPrevPos = new int[] { 0, 0, 0, 0 };
+        DtOfThisPos = new int[] { 0, 0, 0, 0 };
+        DtPrevOfThisPos = new int[] { 0, 0, 0, 0 };
+        for (int i = 0; i < 4; i++)
         {
-            if (DateTime.Now.Day != switchingDTs[d].Day)
+            for (int k = 0; k < 4; k++)
             {
-                //日付を有効なものに更新
-                switchingDTs[d] = new DateTime(
-                        dtNow.Year, dtNow.Month, dtNow.Day,
-                        switchingDTs[d].Hour,
-                        switchingDTs[d].Minute,
-                        switchingDTs[d].Second
-                );
+                if (i == k) continue;
+                if (switchingDTs[i] > switchingDTs[k]) sortedDtPos[i]++;
+                if (fadeoutStartDTs[i] > fadeoutStartDTs[k]) sortedDtPrevPos[i]++;
+
             }
+            DtOfThisPos[sortedDtPos[i]] = i;
+            DtPrevOfThisPos[sortedDtPrevPos[i]] = i;
         }
 
+
+    }
+
+    private void RecalcSwitchingDT(DateTime dtNow)
+    {
+
+        for (int i = 0; i < 4; i++)
+        {
+            switchingDTs[i] = new DateTime(
+                dtNow.Year,
+                dtNow.Month,
+                dtNow.Day,
+                switchingDTs[i].Hour,
+                switchingDTs[i].Minute,
+                0)
+
+            fadeoutStartDTs[i] = new DateTime(
+                dtNow.Year,
+                dtNow.Month,
+                dtNow.Day,
+                fadeoutStartDTs[i].Hour,
+                fadeoutStartDTs[i].Minute,
+                fadeoutStartDTs[i].Second)
+        }
 
     }
 
@@ -226,102 +249,83 @@ public class clock2_manager : UdonSharpBehaviour
 
         Clock_Tick(min, hour, sec);
 
+        //時間帯判定A,Bが入る(A..通常 B..フェードアウト用)
+        //時間帯判定A,Bで出てきた値に応じて、musicかskyboxの切り替え処理を行う
+
+        //処理ある？    A異   B異
+        //         音   ○　　○
+        //         空   ○    --
 
 
+        int day = dtNow.Day;
+
+        if (day != prevDay)
+        {
+            RecalcSwitchingDT(dtNow);
+            prevDay = day;
+        }
 
         if (controlMusic || controlSkybox)
         {
-
-            int day = dtNow.Day;
-
-            if (day != prevDay)
+            //定刻検出
+            int cur_dt = CurrentDTGeneral(dtNow, switchingDTs, DtOfThisPos);
+            if (cur_dt != prevDT)
             {
-                RecalcSwitchingDT();
-                prevDay = day;
-            }
-
-            int currentDT = 3;
-            int currentDT_Audio = 3;
-
-            //現在時刻と次の時刻判定
-            for (int i = 0; i < 4; i++)
-            {
-                if (dtNow < switchingDTs[i])
-                {
-                    currentDT = (3 + i) % 4;
-                    break;
-                }
-            }
-
-            //1フレ前の時間帯と異なる
-            if (prevDT != currentDT)
-            {
-                prevDT = currentDT;
-
+                prevDT = cur_dt;
                 if (controlSkybox) RefreshSky();
                 if (controlMusic) SwitchAudioFadeStat(AUDIO_FADING_IN);
             }
+        }
 
-            //fadeoutぶんだけ前のバージョン
-            for (int i = 0; i < 4; i++)
+
+        if (controlMusic)
+        {
+            //定刻前検出
+            int cur_dt_appr = CurrentDTGeneral(dtNow, fadeoutStartDTs, DtPrevOfThisPos);
+            if (cur_dt_appr != prevDT_Audio)
             {
-                if (dtNow < fadeoutStartDTs[i])
+                prevDT_Audio = cur_dt_appr;
+                if (!thisisFirstFade) //どの時間に入ろうが、必ず一度呼ばれてしまう為.
                 {
-                    currentDT_Audio = (3 + i) % 4;
-                    break;
+                    if (controlMusic) SwitchAudioFadeStat(AUDIO_FADING_OUT);
+                    thisisFirstFade = false;
                 }
             }
 
-            if (controlSkybox)
+            //音量制御
+            float vol = 0f;
+            switch (currentAudioStat)
             {
-
-            }
-
-            if (controlMusic)
-            {
-                //音量制御
-                float vol = 0f;
-                switch (currentAudioStat)
-                {
-                    case AUDIO_FADING_IN:
-                        audioRemainFadeTime -= Time.deltaTime;
-                        vol = 1 - audioRemainFadeTime * fadeInMax_INV;
-                        if (audioRemainFadeTime < 0)
-                        {
-                            audioRemainFadeTime = 0;
-                            currentAudioStat = AUDIO_PLAYING;
-                        }
-                        break;
-                    case AUDIO_FADING_OUT:
-                        audioRemainFadeTime -= Time.deltaTime;
-                        vol = audioRemainFadeTime * fadeOutMax_INV;
-                        if (audioRemainFadeTime < 0)
-                        {
-                            audioRemainFadeTime = 0;
-                            currentAudioStat = AUDIO_IDLE;
-                        }
-                        break;
-                    case AUDIO_IDLE:
-                        //vol = 0;
-                        break;
-                    case AUDIO_PLAYING:
-                        vol = 1;
-                        break;
-                }
-                if (audioSrc != null) audioSrc.volume = vol;
-
-                //音声フェードアウト用
-                if (prevDT_Audio != currentDT_Audio)
-                {
-                    prevDT_Audio = currentDT_Audio;
-                    if (!firstFadeFlag)
+                case AUDIO_FADING_IN:
+                    audioRemainFadeTime -= Time.deltaTime;
+                    vol = 1 - audioRemainFadeTime * fadeInMax_INV;
+                    if (audioRemainFadeTime < 0)
                     {
-                        SwitchAudioFadeStat(AUDIO_FADING_OUT);
-                        firstFadeFlag = false;
+                        audioRemainFadeTime = 0;
+                        currentAudioStat = AUDIO_PLAYING;
                     }
-                }
+                    break;
 
+                case AUDIO_FADING_OUT:
+                    audioRemainFadeTime -= Time.deltaTime;
+                    vol = audioRemainFadeTime * fadeOutMax_INV;
+                    if (audioRemainFadeTime < 0)
+                    {
+                        audioRemainFadeTime = 0;
+                        currentAudioStat = AUDIO_IDLE;
+                    }
+                    break;
+
+                case AUDIO_IDLE:
+                    //vol = 0;
+                    break;
+
+                case AUDIO_PLAYING:
+                    vol = 1;
+                    break;
             }
+            if (audioSrc != null) audioSrc.volume = vol;
+
 
         }
 
@@ -374,6 +378,19 @@ public class clock2_manager : UdonSharpBehaviour
 
         if (switchingLights[prevDT] != null)
             switchingLights[prevDT].SetActive(true);
+    }
+
+    private int CurrentDTGeneral(DateTime dtNow, int[] DTs, int[] DTOfPos)
+    {
+        int pass_count = 0;
+
+        for (int i = 0; i < 4; i++)
+        {
+            if (dtNow > DTs[i]) pass_count++;
+        }
+        if (pass_count >= 4) pass_count = 0;
+
+        return DTOfPos[pass_count];
     }
 
 }
