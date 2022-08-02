@@ -15,6 +15,7 @@ public class clock2_manager : UdonSharpBehaviour
     [SerializeField] GameObject longHand;
     [SerializeField] GameObject secondHand;
 
+
     [Header("この時計でこのワールドのSkyboxを制御する")]
     [SerializeField] bool controlSkybox = false;
     [Header("Cloud Sea")]
@@ -27,6 +28,10 @@ public class clock2_manager : UdonSharpBehaviour
     [Header("AudioSource")]
     [SerializeField] AudioSource audioSrc;
 
+
+    [SerializeField, Multiline] String consoleStr = "";
+    [SerializeField, Range(0f, 1f)] float cvol = 0f;
+    [SerializeField, Range(0f, 30f)] float crem = 0f;
 
     [Header("開始時刻 / 早朝")]
     [SerializeField, Range(0, 23)] int morningHour = 5;
@@ -161,8 +166,8 @@ public class clock2_manager : UdonSharpBehaviour
 
 
         //時間帯ソート
-        int sortedDtPos = new int[] { 0, 0, 0, 0 };
-        int sortedDtPrevPos = new int[] { 0, 0, 0, 0 };
+        int[] sortedDtPos = new int[] { 0, 0, 0, 0 };
+        int[] sortedDtPrevPos = new int[] { 0, 0, 0, 0 };
         DtOfThisPos = new int[] { 0, 0, 0, 0 };
         DtPrevOfThisPos = new int[] { 0, 0, 0, 0 };
         for (int i = 0; i < 4; i++)
@@ -192,7 +197,7 @@ public class clock2_manager : UdonSharpBehaviour
                 dtNow.Day,
                 switchingDTs[i].Hour,
                 switchingDTs[i].Minute,
-                0)
+                0);
 
             fadeoutStartDTs[i] = new DateTime(
                 dtNow.Year,
@@ -200,7 +205,7 @@ public class clock2_manager : UdonSharpBehaviour
                 dtNow.Day,
                 fadeoutStartDTs[i].Hour,
                 fadeoutStartDTs[i].Minute,
-                fadeoutStartDTs[i].Second)
+                fadeoutStartDTs[i].Second);
         }
 
     }
@@ -288,18 +293,23 @@ public class clock2_manager : UdonSharpBehaviour
             if (cur_dt_appr != prevDT_Audio)
             {
                 prevDT_Audio = cur_dt_appr;
-                if (!thisisFirstFade) //どの時間に入ろうが、必ず一度呼ばれてしまう為.
-                {
-                    if (controlMusic) SwitchAudioFadeStat(AUDIO_FADING_OUT);
+                //if (!thisisFirstFade) //どの時間に入ろうが、必ず一度呼ばれてしまう為.
+                //{
+                    audioRemainFadeTime = fadeOutMax;
+                    SwitchAudioFadeStat(AUDIO_FADING_OUT);
+
                     thisisFirstFade = false;
-                }
+                //}
             }
+
+            consoleStr = "prevDT = " + prevDT.ToString() + "   prevDT_A = " + prevDT_Audio.ToString();
 
             //音量制御
             float vol = 0f;
             switch (currentAudioStat)
             {
                 case AUDIO_FADING_IN:
+                    consoleStr = "prevDT = " + prevDT.ToString() + " prevDT_A = " + prevDT_Audio.ToString() + " AUDIO_FADING_IN";
                     audioRemainFadeTime -= Time.deltaTime;
                     vol = 1 - audioRemainFadeTime * fadeInMax_INV;
                     if (audioRemainFadeTime < 0)
@@ -310,6 +320,7 @@ public class clock2_manager : UdonSharpBehaviour
                     break;
 
                 case AUDIO_FADING_OUT:
+                    consoleStr = "prevDT = " + prevDT.ToString() + " prevDT_A = " + prevDT_Audio.ToString() + " AUDIO_FADING_OUT";
                     audioRemainFadeTime -= Time.deltaTime;
                     vol = audioRemainFadeTime * fadeOutMax_INV;
                     if (audioRemainFadeTime < 0)
@@ -320,14 +331,20 @@ public class clock2_manager : UdonSharpBehaviour
                     break;
 
                 case AUDIO_IDLE:
+                    consoleStr = "prevDT = " + prevDT.ToString() + " prevDT_A = " + prevDT_Audio.ToString() + " AUDIO_IDLE";
                     //vol = 0;
                     break;
 
                 case AUDIO_PLAYING:
+                    consoleStr = "prevDT = " + prevDT.ToString() + " prevDT_A = " + prevDT_Audio.ToString() + " AUDIO_PLAYING";
                     vol = 1;
                     break;
             }
+
+            cvol = vol;
             if (audioSrc != null) audioSrc.volume = vol;
+
+            crem = audioRemainFadeTime;
 
 
         }
@@ -383,15 +400,16 @@ public class clock2_manager : UdonSharpBehaviour
             switchingLights[prevDT].SetActive(true);
     }
 
-    private int CurrentDTGeneral(DateTime dtNow, int[] DTs, int[] DTOfPos)
+    private int CurrentDTGeneral(DateTime dtNow, DateTime[] DTs, int[] DTOfPos)
     {
         int pass_count = 0;
 
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < DTs.Length; i++)
         {
             if (dtNow > DTs[i]) pass_count++;
         }
-        if (pass_count >= 4) pass_count = 0;
+
+        if (pass_count != 0) pass_count--;
 
         return DTOfPos[pass_count];
     }
