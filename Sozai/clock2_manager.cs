@@ -8,6 +8,7 @@ using UnityEngine.UI;
 
 public class clock2_manager : UdonSharpBehaviour
 {
+    #region SerializeField
     //-----------------------------------
 
     [SerializeField] GameObject shortHand;
@@ -58,6 +59,8 @@ public class clock2_manager : UdonSharpBehaviour
     [SerializeField] Material cloudseaNight;
     [SerializeField] AudioClip audioNight;
     [SerializeField] GameObject directionalLightNight;
+
+    #endregion
 
 
     private float fadeInMax;
