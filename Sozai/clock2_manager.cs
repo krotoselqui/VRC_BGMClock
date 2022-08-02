@@ -30,6 +30,10 @@ public class clock2_manager : UdonSharpBehaviour
 
 
     [SerializeField, Multiline] String consoleStr = "";
+    [SerializeField, Multiline] String consoleStr2 = "";
+    [SerializeField, Multiline] String consoleStr3 = "";
+    [SerializeField, Multiline] String consoleStr4 = "";
+    [SerializeField, Multiline] String consoleStr5 = "";
     [SerializeField, Range(0f, 1f)] float cvol = 0f;
     [SerializeField, Range(0f, 30f)] float crem = 0f;
 
@@ -164,6 +168,10 @@ public class clock2_manager : UdonSharpBehaviour
         //現在日付基準で更新(最初も必要)
         RecalcSwitchingDT(dtNow);
 
+        consoleStr2 = fadeoutStartDTs[0].ToString();
+        consoleStr3 = fadeoutStartDTs[1].ToString();
+        consoleStr4 = fadeoutStartDTs[2].ToString();
+        consoleStr5 = fadeoutStartDTs[3].ToString();
 
         //時間帯ソート
         int[] sortedDtPos = new int[] { 0, 0, 0, 0 };
@@ -293,13 +301,11 @@ public class clock2_manager : UdonSharpBehaviour
             if (cur_dt_appr != prevDT_Audio)
             {
                 prevDT_Audio = cur_dt_appr;
-                //if (!thisisFirstFade) //どの時間に入ろうが、必ず一度呼ばれてしまう為.
-                //{
-                    audioRemainFadeTime = fadeOutMax;
+                if (!thisisFirstFade) //どの時間に入ろうが、必ず一度呼ばれてしまう為.
+                {
                     SwitchAudioFadeStat(AUDIO_FADING_OUT);
-
                     thisisFirstFade = false;
-                //}
+                }
             }
 
             consoleStr = "prevDT = " + prevDT.ToString() + "   prevDT_A = " + prevDT_Audio.ToString();
@@ -410,6 +416,7 @@ public class clock2_manager : UdonSharpBehaviour
         }
 
         if (pass_count != 0) pass_count--;
+        if (pass_count == 0) pass_count = 3;
 
         return DTOfPos[pass_count];
     }
