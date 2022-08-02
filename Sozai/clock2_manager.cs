@@ -284,7 +284,8 @@ public class clock2_manager : UdonSharpBehaviour
         if (controlMusic || controlSkybox)
         {
             //定刻検出
-            int cur_dt = CurrentDTGeneral(dtNow, switchingDTs, DtOfThisPos);
+            //int cur_dt = CurrentDTGeneral(dtNow, switchingDTs, DtOfThisPos);
+            int cur_dt = DtOfThisPos[CurrentDTGeneral(dtNow, switchingDTs)];
             if (cur_dt != prevDT)
             {
                 prevDT = cur_dt;
@@ -297,20 +298,26 @@ public class clock2_manager : UdonSharpBehaviour
         if (controlMusic)
         {
             //定刻前検出
-            int cur_dt_appr = CurrentDTGeneral(dtNow, fadeoutStartDTs, DtPrevOfThisPos);
+            //int cur_dt_appr = CurrentDTGeneral(dtNow, fadeoutStartDTs, DtPrevOfThisPos);
+            //同義なのでは？
+            int cur_dt_appr = DtPrevOfThisPos[CurrentDTGeneral(dtNow, fadeoutStartDTs)];
             if (cur_dt_appr != prevDT_Audio)
             {
                 prevDT_Audio = cur_dt_appr;
-                if (!thisisFirstFade) //どの時間に入ろうが、必ず一度呼ばれてしまう為.
+                if (thisisFirstFade = true) //どの時間に入ろうが、必ず一度呼ばれてしまう為.
+                {
+                    thisisFirstFade = false;
+                }
+                else
                 {
                     SwitchAudioFadeStat(AUDIO_FADING_OUT);
-                    thisisFirstFade = false;
                 }
             }
 
+            //この行の段階では正しい値が出力されている
             consoleStr = "prevDT = " + prevDT.ToString() + "   prevDT_A = " + prevDT_Audio.ToString();
 
-            //音量制御
+            //経時音量制御
             float vol = 0f;
             switch (currentAudioStat)
             {
@@ -326,7 +333,7 @@ public class clock2_manager : UdonSharpBehaviour
                     break;
 
                 case AUDIO_FADING_OUT:
-                    consoleStr = "prevDT = " + prevDT.ToString() + " prevDT_A = " + prevDT_Audio.ToString() + " AUDIO_FADING_OUT";
+                    consoleStr = "prevDT = " + prevDT.ToString() + " prevDT_A = " + prevDT_Audio.ToString() + " AUDIO_FADING_OUT";　
                     audioRemainFadeTime -= Time.deltaTime;
                     vol = audioRemainFadeTime * fadeOutMax_INV;
                     if (audioRemainFadeTime < 0)
@@ -406,7 +413,7 @@ public class clock2_manager : UdonSharpBehaviour
             switchingLights[prevDT].SetActive(true);
     }
 
-    private int CurrentDTGeneral(DateTime dtNow, DateTime[] DTs, int[] DTOfPos)
+    private int CurrentDTGeneral(DateTime dtNow, DateTime[] DTs)
     {
         int pass_count = 0;
 
@@ -418,7 +425,7 @@ public class clock2_manager : UdonSharpBehaviour
         if (pass_count != 0) pass_count--;
         if (pass_count == 0) pass_count = 3;
 
-        return DTOfPos[pass_count];
+        return pass_count;
     }
 
 }
