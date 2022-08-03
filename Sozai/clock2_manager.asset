@@ -700,7 +700,7 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: consoleStr
+      Data: chk_str
     - Name: $v
       Entry: 7
       Data: 48|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
@@ -727,10 +727,10 @@ MonoBehaviour:
       Data: SystemString
     - Name: symbolOriginalName
       Entry: 1
-      Data: consoleStr
+      Data: chk_str
     - Name: symbolUniqueName
       Entry: 1
-      Data: consoleStr
+      Data: chk_str
     - Name: symbolDefaultValue
       Entry: 6
       Data: 
@@ -1066,7 +1066,7 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: cvol
+      Data: chk_vol
     - Name: $v
       Entry: 7
       Data: 74|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
@@ -1093,10 +1093,10 @@ MonoBehaviour:
       Data: SystemSingle
     - Name: symbolOriginalName
       Entry: 1
-      Data: cvol
+      Data: chk_vol
     - Name: symbolUniqueName
       Entry: 1
-      Data: cvol
+      Data: chk_vol
     - Name: symbolDefaultValue
       Entry: 6
       Data: 
@@ -1147,7 +1147,7 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: crem
+      Data: chk_rem
     - Name: $v
       Entry: 7
       Data: 80|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
@@ -1168,10 +1168,10 @@ MonoBehaviour:
       Data: SystemSingle
     - Name: symbolOriginalName
       Entry: 1
-      Data: crem
+      Data: chk_rem
     - Name: symbolUniqueName
       Entry: 1
-      Data: crem
+      Data: chk_rem
     - Name: symbolDefaultValue
       Entry: 6
       Data: 

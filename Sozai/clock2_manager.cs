@@ -10,6 +10,11 @@ public class clock2_manager : UdonSharpBehaviour
 {
     #region SerializeField
     //-----------------------------------
+    //22:09
+    //22:08
+    //22:10
+    //22:07
+    //のときに 07がまるまるスキップされてしまった。
 
     [SerializeField] GameObject shortHand;
     [SerializeField] GameObject longHand;
