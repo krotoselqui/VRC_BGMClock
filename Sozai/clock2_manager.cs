@@ -29,13 +29,13 @@ public class clock2_manager : UdonSharpBehaviour
     [SerializeField] AudioSource audioSrc;
 
 
-    [SerializeField, Multiline] String consoleStr = "";
+    [SerializeField, Multiline] String chk_str = "";
     [SerializeField, Multiline] String consoleStr2 = "";
     [SerializeField, Multiline] String consoleStr3 = "";
     [SerializeField, Multiline] String consoleStr4 = "";
     [SerializeField, Multiline] String consoleStr5 = "";
-    [SerializeField, Range(0f, 1f)] float cvol = 0f;
-    [SerializeField, Range(0f, 30f)] float crem = 0f;
+    [SerializeField, Range(0f, 1f)] float chk_vol = 0f;
+    [SerializeField, Range(0f, 30f)] float chk_rem = 0f;
 
     [Header("開始時刻 / 早朝")]
     [SerializeField, Range(0, 23)] int morningHour = 5;
@@ -306,14 +306,14 @@ public class clock2_manager : UdonSharpBehaviour
             }
 
             //窓確認用
-            consoleStr = "DT[" + prevDT.ToString() + "] DT_A[" + prevDT_Audio.ToString() + "]";
+            chk_str = "DT[" + prevDT.ToString() + "] DT_A[" + prevDT_Audio.ToString() + "]";
 
             //経時音量制御
             float vol = 0f;
             switch (currentAudioStat)
             {
                 case AUDIO_FADING_IN:
-                    consoleStr = "prevDT = " + prevDT.ToString() + " prevDT_A = " + prevDT_Audio.ToString() + " AUDIO_FADING_IN";
+                    chk_str += " AUDIO_FADING_IN";
                     audioRemainFadeTime -= Time.deltaTime;
                     vol = 1 - audioRemainFadeTime * fadeInMax_INV;
                     if (audioRemainFadeTime < 0)
@@ -324,7 +324,7 @@ public class clock2_manager : UdonSharpBehaviour
                     break;
 
                 case AUDIO_FADING_OUT:
-                    consoleStr = "prevDT = " + prevDT.ToString() + " prevDT_A = " + prevDT_Audio.ToString() + " AUDIO_FADING_OUT";　
+                    chk_str += " AUDIO_FADING_OUT";　
                     audioRemainFadeTime -= Time.deltaTime;
                     vol = audioRemainFadeTime * fadeOutMax_INV;
                     if (audioRemainFadeTime < 0)
@@ -335,20 +335,20 @@ public class clock2_manager : UdonSharpBehaviour
                     break;
 
                 case AUDIO_IDLE:
-                    consoleStr = "prevDT = " + prevDT.ToString() + " prevDT_A = " + prevDT_Audio.ToString() + " AUDIO_IDLE";
+                    chk_str += " AUDIO_IDLE";
                     //vol = 0;
                     break;
 
                 case AUDIO_PLAYING:
-                    consoleStr = "prevDT = " + prevDT.ToString() + " prevDT_A = " + prevDT_Audio.ToString() + " AUDIO_PLAYING";
+                    chk_str += " AUDIO_PLAYING";
                     vol = 1;
                     break;
             }
 
-            cvol = vol;
+            chk_vol = vol;
             if (audioSrc != null) audioSrc.volume = vol;
 
-            crem = audioRemainFadeTime;
+            chk_rem = audioRemainFadeTime;
 
 
         }
