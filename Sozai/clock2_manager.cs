@@ -283,8 +283,7 @@ public class clock2_manager : UdonSharpBehaviour
 
         if (controlMusic || controlSkybox)
         {
-            //定刻検出
-            //int cur_dt = CurrentDTGeneral(dtNow, switchingDTs, DtOfThisPos);
+            //定刻の検出
             int cur_dt = DtOfThisPos[CurrentDTGeneral(dtNow, switchingDTs)];
             if (cur_dt != prevDT)
             {
@@ -297,25 +296,17 @@ public class clock2_manager : UdonSharpBehaviour
 
         if (controlMusic)
         {
-            //定刻前検出
-            //int cur_dt_appr = CurrentDTGeneral(dtNow, fadeoutStartDTs, DtPrevOfThisPos);
-            //同義なのでは？
+            //定刻接近の検出
             int cur_dt_appr = DtPrevOfThisPos[CurrentDTGeneral(dtNow, fadeoutStartDTs)];
             if (cur_dt_appr != prevDT_Audio)
             {
                 prevDT_Audio = cur_dt_appr;
-                if (thisisFirstFade = true) //どの時間に入ろうが、必ず一度呼ばれてしまう為.
-                {
-                    thisisFirstFade = false;
-                }
-                else
-                {
-                    SwitchAudioFadeStat(AUDIO_FADING_OUT);
-                }
+                if (!thisisFirstFade) SwitchAudioFadeStat(AUDIO_FADING_OUT);
+                thisisFirstFade = false;
             }
 
-            //この行の段階では正しい値が出力されている
-            consoleStr = "prevDT = " + prevDT.ToString() + "   prevDT_A = " + prevDT_Audio.ToString();
+            //窓確認用
+            consoleStr = "DT[" + prevDT.ToString() + "] DT_A[" + prevDT_Audio.ToString() + "]";
 
             //経時音量制御
             float vol = 0f;
