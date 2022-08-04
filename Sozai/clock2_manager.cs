@@ -418,18 +418,9 @@ public class clock2_manager : UdonSharpBehaviour
             if (dtNow > DTs[i]) pass_count++;
         }
 
-        //if (pass_count == 0)
-        //{
-        //   pass_count = 3;
-        //}
-        //else
-        //{
-        //    pass_count-- ;
-        //}
+        int dt_cur = (pass_count + 3) % 4;
 
-        pass_count = (pass_count + 3) % 4;
-
-        return pass_count;
+        return dt_cur;
     }
 
 }
