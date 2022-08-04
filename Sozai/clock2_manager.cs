@@ -152,10 +152,10 @@ public class clock2_manager : UdonSharpBehaviour
 
         switchingDTs = new DateTime[]
         {
-            new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, morningHour,morningMin,0),
-            new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, dayHour,dayMin,0),
-            new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, eveningHour,eveningMin,0),
-            new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, nightHour,nightMin,0),
+            new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, morningHour,morningMin,0,0),
+            new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, dayHour,dayMin,0,100),
+            new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, eveningHour,eveningMin,0,200),
+            new DateTime(dtNow.Year, dtNow.Month, dtNow.Day, nightHour,nightMin,0,300),
         };
 
         //フェードアウト発動タイミングを計算しておく
@@ -171,7 +171,7 @@ public class clock2_manager : UdonSharpBehaviour
         };
 
         //現在日付基準で更新(最初も必要)
-        RecalcSwitchingDT(dtNow);
+        ChangeDtToToday(dtNow);
 
         consoleStr2 = fadeoutStartDTs[0].ToString();
         consoleStr3 = fadeoutStartDTs[1].ToString();
@@ -199,7 +199,7 @@ public class clock2_manager : UdonSharpBehaviour
 
     }
 
-    private void RecalcSwitchingDT(DateTime dtNow)
+    private void ChangeDtToToday(DateTime dtNow)
     {
 
         for (int i = 0; i < 4; i++)
@@ -282,7 +282,7 @@ public class clock2_manager : UdonSharpBehaviour
 
         if (day != prevDay)
         {
-            RecalcSwitchingDT(dtNow);
+            ChangeDtToToday(dtNow);
             prevDay = day;
         }
 
@@ -329,7 +329,7 @@ public class clock2_manager : UdonSharpBehaviour
                     break;
 
                 case AUDIO_FADING_OUT:
-                    chk_str += " AUDIO_FADING_OUT";　
+                    chk_str += " AUDIO_FADING_OUT";
                     audioRemainFadeTime -= Time.deltaTime;
                     vol = audioRemainFadeTime * fadeOutMax_INV;
                     if (audioRemainFadeTime < 0)
@@ -418,8 +418,16 @@ public class clock2_manager : UdonSharpBehaviour
             if (dtNow > DTs[i]) pass_count++;
         }
 
-        if (pass_count != 0) pass_count--;
-        if (pass_count == 0) pass_count = 3;
+        //if (pass_count == 0)
+        //{
+        //   pass_count = 3;
+        //}
+        //else
+        //{
+        //    pass_count-- ;
+        //}
+
+        pass_count = (pass_count + 3) % 4;
 
         return pass_count;
     }
