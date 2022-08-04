@@ -310,55 +310,77 @@ public class clock2_manager : UdonSharpBehaviour
                 thisisFirstFade = false;
             }
 
+            //音量制御
+            float cur_vol = UpdateMusicVol();
+
             //窓確認用
             chk_str = "DT[" + prevDT.ToString() + "] DT_A[" + prevDT_Audio.ToString() + "]";
 
-            //経時音量制御
-            float vol = 0f;
             switch (currentAudioStat)
             {
                 case AUDIO_FADING_IN:
                     chk_str += " AUDIO_FADING_IN";
-                    audioRemainFadeTime -= Time.deltaTime;
-                    vol = 1 - audioRemainFadeTime * fadeInMax_INV;
-                    if (audioRemainFadeTime < 0)
-                    {
-                        audioRemainFadeTime = 0;
-                        currentAudioStat = AUDIO_PLAYING;
-                    }
                     break;
 
                 case AUDIO_FADING_OUT:
                     chk_str += " AUDIO_FADING_OUT";
-                    audioRemainFadeTime -= Time.deltaTime;
-                    vol = audioRemainFadeTime * fadeOutMax_INV;
-                    if (audioRemainFadeTime < 0)
-                    {
-                        audioRemainFadeTime = 0;
-                        currentAudioStat = AUDIO_IDLE;
-                    }
                     break;
 
                 case AUDIO_IDLE:
                     chk_str += " AUDIO_IDLE";
-                    //vol = 0;
                     break;
 
                 case AUDIO_PLAYING:
                     chk_str += " AUDIO_PLAYING";
-                    vol = 1;
                     break;
             }
 
-            chk_vol = vol;
-            if (audioSrc != null) audioSrc.volume = vol;
-
+            chk_vol = cur_vol;
             chk_rem = audioRemainFadeTime;
-
 
         }
 
 
+    }
+
+    private float UpdateMusicVol()
+    {
+        //経時音量制御
+        float vol = 0f;
+        switch (currentAudioStat)
+        {
+            case AUDIO_FADING_IN:
+                audioRemainFadeTime -= Time.deltaTime;
+                vol = 1 - audioRemainFadeTime * fadeInMax_INV;
+                if (audioRemainFadeTime < 0)
+                {
+                    audioRemainFadeTime = 0;
+                    currentAudioStat = AUDIO_PLAYING;
+                }
+                break;
+
+            case AUDIO_FADING_OUT:
+                audioRemainFadeTime -= Time.deltaTime;
+                vol = audioRemainFadeTime * fadeOutMax_INV;
+                if (audioRemainFadeTime < 0)
+                {
+                    audioRemainFadeTime = 0;
+                    currentAudioStat = AUDIO_IDLE;
+                }
+                break;
+
+            case AUDIO_IDLE:
+                //vol = 0;
+                break;
+
+            case AUDIO_PLAYING:
+                vol = 1;
+                break;
+        }
+
+        if (audioSrc != null) audioSrc.volume = vol;
+
+        return vol;
     }
 
     private void SwitchAudioFadeStat(int mode)
